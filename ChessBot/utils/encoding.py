@@ -18,6 +18,7 @@ def getMoveDict():
             codes[("under_promo", move, promo)], i = i, i+1
 
     assert len(codes) == 73, "Error: Incorrect number of move encodings"
+    print(codes)
     return codes
 
 getMoveDict()

@@ -71,9 +71,9 @@ class EncoderOnlyTransformer(nn.Module):
         ])
 
         self.norm = nn.LayerNorm(config.embed_dim)
-        self.moves_head = nn.Linear(config.embed_dim, config.moves_vocab_size)
+        self.moves_head = nn.Linear(config.embed_dim * config.pos_size, config.moves_vocab_size)
         self.winrate_head = nn.Sequential(
-            nn.Linear(config.embed_dim, 1), 
+            nn.Linear(config.embed_dim * config.pos_size, 1), 
             nn.Sigmoid()
         )
 
@@ -125,7 +125,7 @@ class EncoderOnlyTransformer(nn.Module):
                 size (N, 1).
         '''
         # Create Embeddings
-        embeddings = torch.cat([
+        embeddings = torch.cat([ 
             self.board_embed(batch["board_positions"]),
             self.turn_embed(batch["turns"]),
             self.white_kingside_castling_rights_embed(batch["white_kingside_castling_rights"]),
@@ -144,11 +144,14 @@ class EncoderOnlyTransformer(nn.Module):
 
         # Normalize
         boards = self.norm(boards)
+        batch_size = boards.size(0)
+        boards = boards.view(batch_size, -1)
 
         # Heads
         moves = self.moves_head(boards)
+        # shape of moves is (N, n_moves)
         winrate = self.winrate_head(boards) 
-
+        # shape of winrate is (N, 1)
         return {
             "move": moves,
             "winrate": winrate

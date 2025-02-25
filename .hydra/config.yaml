@@ -5,10 +5,13 @@ model:
   dropout: 0.1
   num_layers: 6
   board_vocab_size: 13
-  pos_size: 64
+  pos_size: 69
   turn_size: 2
   castling_size: 2
-  moves_vocab_size: 4672
+  moves_vocab_size: 1970
+self_play:
+  max_moves: 100
+  temperature: 0.7
 training:
   batch_size: 64
   num_epochs: 10

@@ -6,10 +6,14 @@ model:
   dropout: 0.1
   num_layers: 6
   board_vocab_size: 13     # 12 pieces + 1 empty square
-  pos_size: 64             # 8x8 board
+  pos_size: 69             # 8x8 board + metadata
   turn_size: 2             # White/Black turn
   castling_size: 2         # Can/Cannot castle
-  moves_vocab_size: 4672   # Hypothetical moves vocabulary size
+  moves_vocab_size: 1970   # Hypothetical moves vocabulary size
+
+self_play:
+  max_moves: 100        # Maximum number of moves before declaring a draw
+  temperature: 0.7      # Temperature for move sampling (higher = more random)
 
 # Training Configuration
 training:

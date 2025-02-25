@@ -30,16 +30,19 @@ class Trainer:
 
                 # Forward pass
                 outputs = self.model(batch)
-
-                # Calculate loss
-                move_loss = self.criterion_moves(
-                    outputs["move"].view(-1, self.config.model.moves_vocab_size), 
-                    batch["moves"].view(-1)
-                )
-                winrate_loss = self.criterion_winrate(
-                    outputs["winrate"].squeeze(), 
-                    batch["lengths"].float() / 10.0
-                )
+                '''
+                moves = self.moves_head(boards)
+                # shape of moves is (N, n_moves)
+                winrate = self.winrate_head(boards) 
+                # shape of winrate is (N, 1)
+                return {
+                    "move": moves,
+                    "winrate": winrate
+                }
+                '''
+                
+                # Calculate loss TODO
+                
 
                 loss = move_loss + winrate_loss
                 total_loss += loss.item()

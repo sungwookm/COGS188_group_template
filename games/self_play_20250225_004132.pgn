@@ -1,0 +1,17 @@
+[Event "Self-play Game"]
+[Site "Local Machine"]
+[Date "2025.02.25"]
+[Round "1"]
+[White "ChessTransformer"]
+[Black "ChessTransformer"]
+[Result "1/2-1/2"]
+
+1. h4 Nc6 2. e4 g5 3. a4 e5 4. Ke2 Ke7 5. hxg5 b5 6. Kd3 bxa4 7. Rh3 h5 8. Qe2
+Kd6 9. Ke3 Qf6 10. Qa6 Qxf2+ 11. Kxf2 Ne7 12. Ne2 Bg7 13. Qxc8 Nd5 14. d4 Ncb4
+15. c3 Nxc3 16. Bf4 Nb5 17. Qxc7+ Kxc7 18. Bd2 h4 19. Bxb4 Rhd8 20. Rxh4 Bf6
+21. Rh3 Nc3 22. Bf8 Bg7 23. Rh8 Nb5 24. dxe5 Rac8 25. Bxg7 Ra8 26. Bf6 Rac8 27.
+Bxd8+ Kc6 28. Rh4 Rc7 29. Kg1 Kb7 30. Bf6 Rc6 31. Rh3 Nc7 32. Rh7 Rc5 33. Bg7
+Rc3 34. Rh8 Nd5 35. Rd8 Nc7 36. Ng3 Rf3 37. Bh8 Nd5 38. Bd3 Nc3 39. Bf6 Ne2+
+40. Bxe2 Rf2 41. Bg7 Kc6 42. Bd3 Kc5 43. Bf1 Rf3 44. Bf6 Rb3 45. Bb5 Rb4 46.
+Bxa4 Rb8 47. Kf1 Rb7 48. Bg7 Kc4 49. Bd1 Rb5 50. Ra8 Kd4 1/2-1/2
+
