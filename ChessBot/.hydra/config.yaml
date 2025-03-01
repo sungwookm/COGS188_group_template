@@ -1,0 +1,30 @@
+model:
+  embed_dim: 128
+  num_heads: 8
+  ff_dim: 256
+  dropout: 0.1
+  num_layers: 6
+  board_vocab_size: 13
+  pos_size: 69
+  turn_size: 2
+  castling_size: 2
+  moves_vocab_size: 1970
+game:
+  opponent: stockfish
+  model_color: white
+  max_moves: 1000
+  temperature: 0.7
+  top_k: 5
+stockfish:
+  path: null
+  elo: 2500
+  depth: 20
+training:
+  batch_size: 64
+  num_epochs: 10
+  learning_rate: 0.0001
+  device: cuda
+data:
+  dataset_path: data\ML23d.h5
+paths:
+  model_save_path: chess_model.pth

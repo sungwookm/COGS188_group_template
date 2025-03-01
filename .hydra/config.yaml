@@ -1,23 +1,52 @@
 model:
-  embed_dim: 128
-  num_heads: 8
-  ff_dim: 256
+  embed_dim: 768
+  num_heads: 12
+  ff_dim: 1024
   dropout: 0.1
-  num_layers: 6
+  num_layers: 12
   board_vocab_size: 13
   pos_size: 69
   turn_size: 2
   castling_size: 2
   moves_vocab_size: 1970
-self_play:
-  max_moves: 100
+game:
+  opponent: self
+  model_color: white
+  max_moves: 1000
   temperature: 0.7
-training:
-  batch_size: 64
-  num_epochs: 10
-  learning_rate: 0.0001
-  device: cuda
+  top_k: 5
+stockfish:
+  path: null
+  elo: 1500
+  depth: 5
+mcts:
+  enabled: true
+  simulations: 50
+  exploration: 1.0
+  dirichlet_noise: true
 data:
-  dataset_path: data\ML23d.h5
-paths:
-  model_save_path: chess_model.pth
+  generate_games: true
+  num_games: 10
+  stockfish_percentage: 50
+  max_moves: 100
+  temperature: 0.8
+  top_k: 10
+  games_dir: games/
+  output_dir: training_data/
+  batch_size: 32
+  use_existing_batches: false
+training:
+  epochs: 300
+  learning_rate: 0.001
+  resume: false
+  checkpoint_dir: checkpoints/
+  save_frequency: 1
+  visualize: true
+checkpoint:
+  path: C:\Users\haoyan\Documents\COGS188_group_template-1\checkpoints\latest_model.pt
+model_path: checkpoints/latest_model.pt
+require_model: true
+player_color: white
+model_thinking_time: 1.0
+temperature: 0.5
+top_k: 3

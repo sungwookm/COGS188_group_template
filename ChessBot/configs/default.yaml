@@ -1,36 +1,81 @@
 # Model Configuration
 model:
-  embed_dim: 128
-  num_heads: 8
-  ff_dim: 256
+  embed_dim: 768
+  num_heads: 12
+  ff_dim: 1024
   dropout: 0.1
-  num_layers: 6
+  num_layers: 12
   board_vocab_size: 13     # 12 pieces + 1 empty square
   pos_size: 69             # 8x8 board + metadata
   turn_size: 2             # White/Black turn
   castling_size: 2         # Can/Cannot castle
   moves_vocab_size: 1970   # Hypothetical moves vocabulary size
 
-self_play:
-  max_moves: 100        # Maximum number of moves before declaring a draw
-  temperature: 0.7      # Temperature for move sampling (higher = more random)
+# Game settings
+game:
+  opponent: "self"  # Options: "self" or "stockfish"
+  model_color: "white"  # Options: "white", "black", or "random"
+  max_moves: 1000  # Maximum number of moves before declaring a draw
+  temperature: 0.7  # Temperature for move sampling (higher = more random)
+  top_k: 5  # Number of top moves to consider for sampling
 
-# Training Configuration
-training:
-  batch_size: 64
-  num_epochs: 10
-  learning_rate: 1e-4
-  device: "cuda"
+# Stockfish settings (used both for play and training)
+stockfish:
+  path: null  # Path to Stockfish executable (null to auto-detect)
+  elo: 1500  # ELO rating for Stockfish (used to limit strength)
+  depth: 5  # Search depth for Stockfish moves
 
-# Data Configuration
+# MCTS settings for training and gameplay
+mcts:
+  enabled: true  # Whether to use MCTS for self-play in training
+  simulations: 50  # Number of simulations per move (higher = stronger but slower)
+  exploration: 1.0  # Exploration constant in PUCT formula
+  dirichlet_noise: true  # Whether to add Dirichlet noise to root nodes for exploration
+
+# Data configuration
 data:
-  dataset_path: "data\\ML23d.h5"
+  # Game generation options
+  generate_games: true  # Whether to generate new self-play games
+  num_games: 10  # Number of total games to generate per epoch
+  stockfish_percentage: 50  # Percentage of games to play against Stockfish (0-100)
+  max_moves: 100  # Maximum number of moves per game
+  temperature: 0.8  # Temperature for move selection (higher = more random)
+  top_k: 10  # Number of top moves to consider (used only when MCTS is disabled)
 
-# Paths
-paths:
-  model_save_path: "chess_model.pth"
+  # Data processing options
+  games_dir: "games/"  # Directory for storing game files
+  output_dir: "training_data/"  # Directory to save processed training data
+  batch_size: 32  # Size of training batches
+  use_existing_batches: false  # Whether to use existing processed batches instead of creating new ones
 
+# Training configuration
+training:
+  epochs: 300  # Number of training epochs
+  learning_rate: 0.001  # Learning rate for optimizer
+  resume: false  # Whether to resume training from checkpoint
+  checkpoint_dir: "checkpoints/"  # Directory to save model checkpoints
+  save_frequency: 1  # How often to save model checkpoints (in epochs)
+  visualize: true  # Whether to visualize training history
+
+# Checkpoint configuration (for resuming training)
+checkpoint:
+  path: "C:\\Users\\haoyan\\Documents\\COGS188_group_template-1\\checkpoints\\latest_model.pt"  # Path to checkpoint file for resuming training
+  
 # Hydra Configuration
 hydra:
   run:
     dir: .
+
+# Path to the trained model
+model_path: "checkpoints/latest_model.pt"
+
+# Whether to require a model (if false, will use random moves when model not available)
+require_model: true
+
+# Player options
+player_color: "white"  # "white", "black", or "random"
+
+# Game options
+model_thinking_time: 1.0  # Minimum time (in seconds) the model "thinks" before making a move
+temperature: 0.5  # Temperature for move selection (higher = more random)
+top_k: 3  # Number of top moves to consider
