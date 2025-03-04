@@ -1,0 +1,21 @@
+[Event "Chess Transformer vs Self"]
+[Site "Local Machine"]
+[Date "2025.02.28"]
+[Round "1"]
+[White "ChessTransformer"]
+[Black "ChessTransformer"]
+[Result "1/2-1/2"]
+
+1. f4 f5 2. a4 e6 3. d3 b5 4. axb5 Nc6 5. Bd2 Rb8 6. Bc3 Ne5 7. Bb4 Nc6 8. Nc3
+Ne5 9. Na4 Nc6 10. Rc1 Ne5 11. Nb6 Nc6 12. Bc5 Ne5 13. b4 Nc6 14. Be7 Ne5 15.
+fxe5 h5 16. e4 g5 17. exf5 c5 18. bxc5 Qc7 19. Qf3 Qb7 20. Qe2 Qa6 21. Rd1 Qa2
+22. Qe4 Qa4 23. d4 Qxb5 24. Bxb5 Bg7 25. Bxd7+ Kf7 26. Ra1 Bxe5 27. Rc1 Bf4 28.
+Rd1 Bg3+ 29. Kf1 Bxh2 30. Re1 Bxg1 31. Kxg1 Kxe7 32. Kh2 Kf7 33. Reg1 Kf6 34.
+Rf1 Ba6 35. Rfg1 Bc4 36. Rf1 Bb3 37. Rfg1 Bd5 38. Rf1 Rd8 39. Rfg1 Re8 40. Rf1
+Rc8 41. Rfg1 Rc6 42. Rf1 Rxc5 43. Rfg1 Rc4 44. Rf1 Ra4 45. Rfg1 Ra2 46. Rf1 Ra4
+47. Rfg1 Ra5 48. Rf1 Ra2 49. Rfg1 Ra4 50. Rf1 Ra5 51. Rfg1 exf5 52. Rf1 Ra2 53.
+Rfg1 Ra4 54. Rf1 Ra2 55. Rfg1 Ra4 56. Rf1 Ra2 57. Rfg1 Ra4 58. Rf1 Ra5 59. Rfg1
+Ra2 60. Rf1 Ra4 61. Rfg1 Ra1 62. Rf1 Rc1 63. Rfg1 Rd1 64. Rf1 Re1 65. Rfg1 Rxg1
+66. Qxf5+ Ke7 67. Kxg1 Kd6 68. Kh2 Ke7 69. Kg1 Kd6 70. Kh2 Ke7 71. Kg1 Kd6 72.
+Kh2 Ke7 73. Kg1 Kd6 74. Kh2 Ke7 75. Kg1 1/2-1/2
+

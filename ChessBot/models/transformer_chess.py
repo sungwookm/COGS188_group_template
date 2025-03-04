@@ -71,7 +71,9 @@ class EncoderOnlyTransformer(nn.Module):
         ])
 
         self.norm = nn.LayerNorm(config.embed_dim)
+
         self.moves_head = nn.Linear(config.embed_dim * config.pos_size, config.moves_vocab_size)
+
         self.winrate_head = nn.Sequential(
             nn.Linear(config.embed_dim * config.pos_size, 1), 
             nn.Sigmoid()
@@ -145,6 +147,8 @@ class EncoderOnlyTransformer(nn.Module):
         # Normalize
         boards = self.norm(boards)
         batch_size = boards.size(0)
+
+        
         boards = boards.view(batch_size, -1)
 
         # Heads
