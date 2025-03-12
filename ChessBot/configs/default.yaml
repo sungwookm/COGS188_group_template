@@ -9,7 +9,7 @@ model:
   pos_size: 69             # 8x8 board + metadata
   turn_size: 2             # White/Black turn
   castling_size: 2         # Can/Cannot castle
-  moves_vocab_size: 1970   # Hypothetical moves vocabulary size
+  moves_vocab_size: 1971   # Hypothetical moves vocabulary size
 
 # Game settings
 game:
@@ -27,26 +27,29 @@ stockfish:
 
 # MCTS settings for training and gameplay
 mcts:
-  enabled: true  # Whether to use MCTS for self-play in training
-  simulations: 50  # Number of simulations per move (higher = stronger but slower)
-  exploration: 1.0  # Exploration constant in PUCT formula
-  dirichlet_noise: true  # Whether to add Dirichlet noise to root nodes for exploration
+  enabled: true
+  train_method: "continuous"  # "regeneration" or "continuous"
+  games_per_epoch: 10
+  simulations: 20
+  temperature: 1.0
+  exploration: 1.0
+  dirichlet_noise: true
+  dirichlet_alpha: 0.3
+  noise_fraction: 0.25
+  num_games: 100  # For continuous method
+  epochs_per_game: 1  # For continuous method
 
 # Data configuration
 data:
-  # Game generation options
-  generate_games: true  # Whether to generate new self-play games
-  num_games: 10  # Number of total games to generate per epoch
-  stockfish_percentage: 50  # Percentage of games to play against Stockfish (0-100)
-  max_moves: 100  # Maximum number of moves per game
-  temperature: 0.8  # Temperature for move selection (higher = more random)
-  top_k: 10  # Number of top moves to consider (used only when MCTS is disabled)
-
-  # Data processing options
-  games_dir: "games/"  # Directory for storing game files
-  output_dir: "training_data/"  # Directory to save processed training data
-  batch_size: 32  # Size of training batches
-  use_existing_batches: false  # Whether to use existing processed batches instead of creating new ones
+  games_dir: "games/"
+  output_dir: "training_data/"
+  num_games: 10
+  batch_size: 32
+  max_moves: 100
+  temperature: 1.0
+  top_k: 5
+  stockfish_percentage: 0.0
+  predata_path: null
 
 # Training configuration
 training:

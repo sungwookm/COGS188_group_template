@@ -16,3 +16,4 @@ from tqdm import tqdm
 
 # Import UCI_MOVES mapping from the main file
 from utils.paste import UCI_MOVES
+

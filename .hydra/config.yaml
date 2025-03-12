@@ -8,7 +8,7 @@ model:
   pos_size: 69
   turn_size: 2
   castling_size: 2
-  moves_vocab_size: 1970
+  moves_vocab_size: 1971
 game:
   opponent: self
   model_color: white
@@ -21,20 +21,26 @@ stockfish:
   depth: 5
 mcts:
   enabled: true
-  simulations: 50
+  train_method: continuous
+  games_per_epoch: 10
+  simulations: 20
+  temperature: 1.0
   exploration: 1.0
   dirichlet_noise: true
+  dirichlet_alpha: 0.3
+  noise_fraction: 0.25
+  num_games: 100
+  epochs_per_game: 1
 data:
-  generate_games: true
-  num_games: 10
-  stockfish_percentage: 50
-  max_moves: 100
-  temperature: 0.8
-  top_k: 10
   games_dir: games/
   output_dir: training_data/
+  num_games: 10
   batch_size: 32
-  use_existing_batches: false
+  max_moves: 100
+  temperature: 1.0
+  top_k: 5
+  stockfish_percentage: 0.0
+  predata_path: null
 training:
   epochs: 300
   learning_rate: 0.001

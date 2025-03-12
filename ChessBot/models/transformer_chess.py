@@ -126,17 +126,35 @@ class EncoderOnlyTransformer(nn.Module):
                 winrate (torch.FloatTensor): The predicted winrate, of
                 size (N, 1).
         '''
-        # Create Embeddings
-        embeddings = torch.cat([ 
-            self.board_embed(batch["board_positions"]),
-            self.turn_embed(batch["turns"]),
-            self.white_kingside_castling_rights_embed(batch["white_kingside_castling_rights"]),
-            self.white_queenside_castling_rights_embed(batch["white_queenside_castling_rights"]),
-            self.black_kingside_castling_rights_embed(batch["black_kingside_castling_rights"]),
-            self.black_queenside_castling_rights_embed(batch["black_queenside_castling_rights"])
-        ], dim=1)
 
-        boards = embeddings + self.positional_embed.weight.unsqueeze(0)
+        # Get dimensions
+        batch_size = batch["board_positions"].size(0)
+        
+        # Create embeddings - ensure all have 3 dimensions [batch, position, embed_dim]
+        board_embeddings = self.board_embed(batch["board_positions"])  # Shape: [N, 64, embed_dim]
+        
+        # Add positional embeddings to board positions
+        positions = torch.arange(0, 64, device=batch["board_positions"].device).unsqueeze(0).expand(batch_size, -1)
+        positional_embeddings = self.positional_embed(positions)  # Shape: [N, 64, embed_dim]
+        board_embeddings = board_embeddings + positional_embeddings
+        
+        # Make sure turn and castling rights are properly shaped [N, 1, embed_dim]
+        turn_embeddings = self.turn_embed(batch["turns"]).unsqueeze(1)  # Shape: [N, 1, embed_dim]
+        w_kingside_embeddings = self.white_kingside_castling_rights_embed(batch["white_kingside_castling_rights"]).unsqueeze(1)
+        w_queenside_embeddings = self.white_queenside_castling_rights_embed(batch["white_queenside_castling_rights"]).unsqueeze(1)
+        b_kingside_embeddings = self.black_kingside_castling_rights_embed(batch["black_kingside_castling_rights"]).unsqueeze(1)
+        b_queenside_embeddings = self.black_queenside_castling_rights_embed(batch["black_queenside_castling_rights"]).unsqueeze(1)
+        
+        # Concatenate all embeddings along the sequence dimension
+        boards = torch.cat([
+            board_embeddings,  # [N, 64, embed_dim]
+            turn_embeddings,   # [N, 1, embed_dim]
+            w_kingside_embeddings,  # [N, 1, embed_dim]
+            w_queenside_embeddings, # [N, 1, embed_dim]
+            b_kingside_embeddings,  # [N, 1, embed_dim]
+            b_queenside_embeddings  # [N, 1, embed_dim]
+        ], dim=1)  # Final shape: [N, 64+5, embed_dim]
+
         # size (N, Board Status Length, embed_dim)
         boards = self.dropout(boards)
 
