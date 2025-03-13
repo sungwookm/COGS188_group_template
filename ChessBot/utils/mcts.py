@@ -8,6 +8,8 @@ import time
 import os
 import tqdm
 import datetime
+import chess.pgn
+import pickle
 
 class MCTSNode:
     def __init__(self, board, parent=None, move=None, prior=0.0, position_history=None):
@@ -463,7 +465,6 @@ def get_best_move_mcts(board, model, device, temperature=1.0, simulations=800, r
     return best_move
 
 
-
 def train_model_with_mcts(model, optimizer, num_games=100, epochs_per_game=1, batch_size=64, 
                           device="cuda", simulations=100, temperature_init=1.0, 
                           repetition_penalty=0.5, save_path="checkpoints"):
@@ -563,7 +564,24 @@ def train_model_with_mcts(model, optimizer, num_games=100, epochs_per_game=1, ba
             print(f"Game {game_idx + 1} - Max moves reached")
             winner = 0.0
 
-     
+        # PGN Conversion
+        pgn_game = chess.pgn.Game()
+        pgn_game.headers["Event"] = "Self-Play"
+        pgn_game.headers["Date"] = datetime.datetime.now().strftime("%Y.%m.%d")
+        pgn_game.headers["Result"] = board.result()
+        node = pgn_game
+        for move in board.move_stack:
+            node = node.add_variation(move)
+        pgn_string = str(pgn_game)
+
+        # Create a new folder called "game_history" inside save_path
+        game_history_dir = os.path.join(save_path, "game_history")
+        os.makedirs(game_history_dir, exist_ok=True)
+        
+        pgn_pickle_path = os.path.join(game_history_dir, f"game_{game_idx+1}_pgn.pkl")
+        with open(pgn_pickle_path, "wb") as f:
+            pickle.dump(pgn_string, f)
+
         
         # Assign values to states based on the final result
         game_values = []
@@ -768,8 +786,6 @@ def train_model_with_mcts_regeneration(model, optimizer, num_epochs=50, batch_si
             policy_targets.extend(game_policies)
             value_targets.extend(game_values)
             
-          
-        
         # Train on the generated data
         epoch_policy_losses = []
         epoch_value_losses = []
@@ -789,7 +805,6 @@ def train_model_with_mcts_regeneration(model, optimizer, num_epochs=50, batch_si
             start_idx = batch_idx * batch_size
             end_idx = min(start_idx + batch_size, num_samples)
             batch_indices = indices[start_idx:end_idx]
-            
             if not batch_indices:
                 continue
                 
