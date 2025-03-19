@@ -1,0 +1,9 @@
+[Event "Model vs Stockfish (Skill Level 5)"]
+[Site "Evaluation"]
+[Date "2025.03.19"]
+[Round "2"]
+[White "Model"]
+[Black "Stockfish (Skill Level 5)"]
+[Result "0-1"]
+
+1. e4 c5 2. Nf3 d5 3. Nc3 d4 4. g3 dxc3 5. Nd4 Qxd4 6. Ke2 Qxe4# 0-1

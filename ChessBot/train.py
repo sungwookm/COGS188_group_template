@@ -7,7 +7,7 @@ import datetime
 import pickle
 import chess.pgn
 from models.transformer_chess import EncoderOnlyTransformer
-from utils.mcts import train_model_with_mcts, train_model_with_mcts_regeneration, train_model_with_stockfish_games
+from utils.mcts import train_model_with_mcts
 # Import our new parallelized stockfish function
 
 
@@ -117,64 +117,23 @@ def main(config: DictConfig) -> None:
         mcts_games_per_epoch = config.mcts.get("games_per_epoch", 10)
         mcts_simulations = config.mcts.get("simulations", 100)
         mcts_temperature = config.mcts.get("temperature", 1.0)
-        mcts_exploration = config.mcts.get("exploration", 1.0)
+        # Train with continuous game generation
+        print("Training with MCTS self-play (continuous game generation)")
+        num_games = config.mcts.get("num_games", 100)
+        epochs_per_game = config.mcts.get("epochs_per_game", 1)
         
-        mcts_method = config.mcts.get("train_method", "regeneration")
-        
-        if mcts_method == "regeneration":
-            # Train with game regeneration at each epoch
-            print("Training with MCTS self-play (game regeneration at each epoch)")
-            history = train_model_with_mcts_regeneration(
-                model=model,
-                optimizer=optimizer,
-                num_epochs=num_epochs,
-                batch_size=batch_size,
-                num_games_per_epoch=mcts_games_per_epoch,
-                device=device,
-                simulations=mcts_simulations,
-                temperature=mcts_temperature,
-                c_puct=mcts_exploration,
-                checkpoint_dir=checkpoint_dir,
-                save_frequency=save_frequency,
-                start_epoch=start_epoch,
-                game_history_dir=game_history_dir,
-                
-            )
-        else:
-            # Train with continuous game generation
-            print("Training with MCTS self-play (continuous game generation)")
-            num_games = config.mcts.get("num_games", 100)
-            epochs_per_game = config.mcts.get("epochs_per_game", 1)
-            
-            history = train_model_with_mcts(
-                model=model,
-                optimizer=optimizer,
-                num_games=num_games,
-                epochs_per_game=epochs_per_game,
-                batch_size=batch_size,
-                device=device,
-                simulations=mcts_simulations,
-                temperature_init=mcts_temperature,
-                save_path=checkpoint_dir,
-                game_history_dir=game_history_dir
-            )
-    elif train_method == "predata":
-        # Use preexisting training data
-        predata_path = config.data.get("predata_path", None)
-        if predata_path:
-            print(f"Training with preexisting data from {predata_path}")
-            from utils.mcts import train_model_with_predata
-            
-            history = train_model_with_predata(
-                model=model,
-                num_epochs=num_epochs,
-                batch_size=batch_size,
-                device=device,
-                predata_path=predata_path
-            )
-        else:
-            print("Error: No predata_path specified for 'predata' method. Please set data.predata_path in the config.")
-            return
+        history = train_model_with_mcts(
+            model=model,
+            optimizer=optimizer,
+            num_games=num_games,
+            epochs_per_game=epochs_per_game,
+            batch_size=batch_size,
+            device=device,
+            simulations=mcts_simulations,
+            temperature_init=mcts_temperature,
+            save_path=checkpoint_dir,
+            game_history_dir=game_history_dir
+        )
     else:
         print(f"Error: Unknown training method '{train_method}'. Please use 'stockfish', 'mcts', or 'predata'.")
         return
@@ -199,28 +158,6 @@ def main(config: DictConfig) -> None:
     }, latest_path)
     print(f"Model also saved as latest model at {latest_path}")
     
-    # Plot and save training history
-    if history and 'total_loss' in history and history['total_loss']:
-        plt.figure(figsize=(12, 8))
-        plt.subplot(1, 2, 1)
-        plt.plot(history['epoch'], history['total_loss'], label='Total Loss')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.title('Training Loss')
-        plt.legend()
-        
-        plt.subplot(1, 2, 2)
-        if 'policy_loss' in history and 'value_loss' in history:
-            plt.plot(history['epoch'], history['policy_loss'], label='Policy Loss')
-            plt.plot(history['epoch'], history['value_loss'], label='Value Loss')
-            plt.xlabel('Epoch')
-            plt.ylabel('Loss')
-            plt.title('Component Losses')
-            plt.legend()
-        
-        plt.tight_layout()
-        plt.savefig(os.path.join(checkpoint_dir, 'training_history.png'))
-        print(f"Training history plot saved to {os.path.join(checkpoint_dir, 'training_history.png')}")
 
 if __name__ == "__main__":
     main()
