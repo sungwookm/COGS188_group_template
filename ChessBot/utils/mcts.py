@@ -9,7 +9,6 @@ from tqdm import tqdm
 import datetime
 import pickle
 import io
-import concurrent.futures
 import chess.engine
 import chess.pgn
 

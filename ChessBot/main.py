@@ -16,34 +16,21 @@ from utils.mcts import get_best_move_mcts, MCTSNode
 
 
 def load_model(config_path, checkpoint_path, device):
-    """
-    Load the chess transformer model from a checkpoint.
-    
-    Args:
-        config_path: Path to the config file
-        checkpoint_path: Path to the model checkpoint
-        device: Device to run the model on
-        
-    Returns:
-        Loaded model
-    """
-    # Load config
+
     config = OmegaConf.load(config_path)
     print("Loaded configuration:")
     print(OmegaConf.to_yaml(config))
     
-    # Create model
+
     model = EncoderOnlyTransformer(config.model).to(device)
-    
-    # Load checkpoint
+
     if os.path.exists(checkpoint_path):
         try:
             print(f"Loading model from {checkpoint_path}")
             checkpoint = torch.load(checkpoint_path, map_location=device)
             model.load_state_dict(checkpoint['model_state_dict'])
             print(f"Successfully loaded model (epoch {checkpoint.get('epoch', 'unknown')})")
-            
-            # Set model to evaluation mode
+
             model.eval()
             return model
         except Exception as e:
@@ -55,16 +42,7 @@ def load_model(config_path, checkpoint_path, device):
 
 
 def load_engine(engine_path, config=None):
-    """
-    Load the Stockfish engine.
-    
-    Args:
-        engine_path: Path to the Stockfish executable
-        config: Optional config for engine settings
-        
-    Returns:
-        Loaded engine
-    """
+
     try:
         engine = chess.engine.SimpleEngine.popen_uci(engine_path)
         print(f"Successfully loaded engine from {engine_path}")
@@ -73,60 +51,6 @@ def load_engine(engine_path, config=None):
         print(f"Error loading engine: {e}")
         raise e
 
-
-def warm_up(model, device="cuda"):
-    """
-    Warm up the model by running a few forward passes.
-    
-    Args:
-        model: The model to warm up
-        device: Device to run the model on
-    """
-    print("Warming up model...")
-    # Create a dummy board
-    board = chess.Board()
-    
-    # Create model input
-    with torch.no_grad():
-        # Convert board to model input format
-        board_tensor = torch.zeros(1, 64, dtype=torch.long)
-        
-        # Map pieces to indices
-        piece_to_idx = {
-            'P': 1, 'N': 2, 'B': 3, 'R': 4, 'Q': 5, 'K': 6,  # White pieces
-            'p': 7, 'n': 8, 'b': 9, 'r': 10, 'q': 11, 'k': 12  # Black pieces
-        }
-        
-        # Fill board tensor
-        for square in chess.SQUARES:
-            piece = board.piece_at(square)
-            if piece:
-                board_tensor[0, square] = piece_to_idx[piece.symbol()]
-        
-        # Turn
-        turn_tensor = torch.tensor([1 if board.turn == chess.WHITE else 0], dtype=torch.long)
-        
-        # Castling rights
-        w_kingside = torch.tensor([1 if board.has_kingside_castling_rights(chess.WHITE) else 0], dtype=torch.long)
-        w_queenside = torch.tensor([1 if board.has_queenside_castling_rights(chess.WHITE) else 0], dtype=torch.long)
-        b_kingside = torch.tensor([1 if board.has_kingside_castling_rights(chess.BLACK) else 0], dtype=torch.long)
-        b_queenside = torch.tensor([1 if board.has_queenside_castling_rights(chess.BLACK) else 0], dtype=torch.long)
-        
-        # Create batch
-        batch = {
-            "board_positions": board_tensor.to(device),
-            "turns": turn_tensor.to(device),
-            "white_kingside_castling_rights": w_kingside.to(device),
-            "white_queenside_castling_rights": w_queenside.to(device),
-            "black_kingside_castling_rights": b_kingside.to(device),
-            "black_queenside_castling_rights": b_queenside.to(device)
-        }
-        
-        # Run forward pass a few times
-        for _ in range(3):
-            _ = model(batch)
-    
-    print("Model warm-up complete")
 
 
 def model_v_engine(model, engine, model_color, skill_level=6, simulations=800, 
@@ -268,34 +192,22 @@ def write_pgns(pgns, filename):
 
 def evaluate_at_skills(model, stockfish_path, config_path, checkpoint_path, 
                        output_dir="evaluation_results", device="cuda"):
-    """
-    Evaluate model against Stockfish at different skill levels.
-    
-    Args:
-        model: The chess transformer model
-        stockfish_path: Path to Stockfish executable
-        config_path: Path to the config file
-        checkpoint_path: Path to the model checkpoint
-        output_dir: Directory to save evaluation results
-        device: Device to run the model on
-    """
+
     os.makedirs(output_dir, exist_ok=True)
-    
-    # Define skill levels to test
+
     skill_levels = [1, 3, 5, 7, 10]
     rounds_per_level = 10
     
-    # Results summary
+
     results = {}
-    
-    # Load engine
+
     engine = load_engine(stockfish_path)
     
     try:
         for skill in skill_levels:
             print(f"\n=== Testing against Stockfish Skill Level {skill} ===")
             
-            # Play as white
+
             print("Model playing as White")
             w_wins, w_losses, w_draws, w_pgns = model_v_engine(
                 model=model,
@@ -306,8 +218,7 @@ def evaluate_at_skills(model, stockfish_path, config_path, checkpoint_path,
                 output_dir=os.path.join(output_dir, f"skill_{skill}"),
                 device=device
             )
-            
-            # Play as black
+
             print("Model playing as Black")
             b_wins, b_losses, b_draws, b_pgns = model_v_engine(
                 model=model,
@@ -319,19 +230,19 @@ def evaluate_at_skills(model, stockfish_path, config_path, checkpoint_path,
                 device=device
             )
             
-            # Save all PGNs for this skill level
+
             all_pgns = w_pgns + b_pgns
             pgn_path = os.path.join(output_dir, f"skill_{skill}_games.pgn")
             write_pgns(all_pgns, pgn_path)
             
-            # Calculate total results
+
             total_wins = w_wins + b_wins
             total_losses = w_losses + b_losses
             total_draws = w_draws + b_draws
             total_games = total_wins + total_losses + total_draws
             win_rate = total_wins / total_games * 100 if total_games > 0 else 0
             
-            # Store results
+
             results[skill] = {
                 "wins": total_wins,
                 "losses": total_losses,
@@ -346,28 +257,8 @@ def evaluate_at_skills(model, stockfish_path, config_path, checkpoint_path,
             print(f"Win Rate: {win_rate:.2f}%")
             
     finally:
-        # Always close the engine
         engine.quit()
     
-    # Save summary report
-    report_path = os.path.join(output_dir, "evaluation_summary.txt")
-    with open(report_path, "w") as f:
-        f.write("Chess Transformer Model Evaluation Report\n")
-        f.write("=======================================\n\n")
-        f.write(f"Model: {checkpoint_path}\n")
-        f.write(f"Date: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-        
-        f.write("Results by Stockfish Skill Level:\n")
-        for skill in skill_levels:
-            r = results[skill]
-            f.write(f"\nSkill Level {skill}:\n")
-            f.write(f"  Total Games: {r['wins'] + r['losses'] + r['draws']}\n")
-            f.write(f"  Wins: {r['wins']}, Losses: {r['losses']}, Draws: {r['draws']}\n")
-            f.write(f"  Win Rate: {r['win_rate']:.2f}%\n")
-            f.write(f"  As White: {r['white_results']['wins']}-{r['white_results']['losses']}-{r['white_results']['draws']}\n")
-            f.write(f"  As Black: {r['black_results']['wins']}-{r['black_results']['losses']}-{r['black_results']['draws']}\n")
-    
-    print(f"\nEvaluation complete. Results saved to {report_path}")
     return results
 
 
@@ -383,19 +274,14 @@ def main():
     parser.add_argument("--model_color", type=str, default="both", choices=["white", "black", "both"], help="Color for the model to play")
     
     args = parser.parse_args()
-    
-    # Set device
+
     device = torch.device(args.device)
-    print(f"Using device: {device}")
-    
-    # Load model
+
     model = load_model(args.config, args.checkpoint, device)
     
-    # Warm up model
-    warm_up(model, device)
-    
+
     if args.skill is not None:
-        # Evaluate against specific skill level
+
         print(f"Evaluating against Stockfish at skill level {args.skill}")
         engine = load_engine(args.stockfish)
         
@@ -424,7 +310,7 @@ def main():
         finally:
             engine.quit()
     else:
-        # Evaluate against multiple skill levels
+
         results = evaluate_at_skills(
             model=model,
             stockfish_path=args.stockfish,
