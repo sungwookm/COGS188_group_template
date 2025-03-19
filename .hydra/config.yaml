@@ -16,9 +16,15 @@ game:
   temperature: 0.7
   top_k: 5
 stockfish:
-  path: null
-  elo: 1500
-  depth: 5
+  path: C:\Program Files\stockfish\stockfish-windows-x86-64-avx2.exe
+  games_per_epoch: 12800
+  max_workers: 24
+  min_elo: 1200
+  max_elo: 2800
+  max_moves: 200
+  min_tc: 5
+  max_tc: 10
+  vary_params: true
 mcts:
   enabled: true
   train_method: continuous
@@ -42,12 +48,13 @@ data:
   stockfish_percentage: 0.0
   predata_path: null
 training:
-  epochs: 300
+  epochs: 50
   learning_rate: 0.001
-  resume: false
+  resume: true
   checkpoint_dir: checkpoints/
   save_frequency: 1
   visualize: true
+  method: stockfish
 checkpoint:
   path: C:\Users\haoyan\Documents\COGS188_group_template-1\checkpoints\latest_model.pt
 model_path: checkpoints/latest_model.pt

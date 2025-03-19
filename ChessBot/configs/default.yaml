@@ -2,9 +2,9 @@
 model:
   embed_dim: 768
   num_heads: 12
-  ff_dim: 1024
+  ff_dim: 768
   dropout: 0.1
-  num_layers: 12
+  num_layers: 8
   board_vocab_size: 13     # 12 pieces + 1 empty square
   pos_size: 69             # 8x8 board + metadata
   turn_size: 2             # White/Black turn
@@ -21,9 +21,15 @@ game:
 
 # Stockfish settings (used both for play and training)
 stockfish:
-  path: null  # Path to Stockfish executable (null to auto-detect)
-  elo: 1500  # ELO rating for Stockfish (used to limit strength)
-  depth: 5  # Search depth for Stockfish moves
+  path: "C:\\Program Files\\stockfish\\stockfish-windows-x86-64-avx2.exe"
+  games_per_epoch: 12800
+  max_workers: 24  # Set to null to use CPU count, or specify a number
+  min_elo: 1200
+  max_elo: 2800
+  max_moves: 200
+  min_tc: 5  # Minimum time control (seconds)
+  max_tc: 10  # Maximum time control (seconds)
+  vary_params: true
 
 # MCTS settings for training and gameplay
 mcts:
@@ -53,12 +59,13 @@ data:
 
 # Training configuration
 training:
-  epochs: 300  # Number of training epochs
+  epochs: 50  # Number of training epochs
   learning_rate: 0.001  # Learning rate for optimizer
-  resume: false  # Whether to resume training from checkpoint
+  resume: true  # Whether to resume training from checkpoint
   checkpoint_dir: "checkpoints/"  # Directory to save model checkpoints
   save_frequency: 1  # How often to save model checkpoints (in epochs)
   visualize: true  # Whether to visualize training history
+  method: 'stockfish'  # Training method: 'mcts', 'self-play', or 'stockfish'
 
 # Checkpoint configuration (for resuming training)
 checkpoint:
