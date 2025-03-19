@@ -2,9 +2,9 @@
 model:
   embed_dim: 768
   num_heads: 12
-  ff_dim: 768
+  ff_dim: 1024
   dropout: 0.1
-  num_layers: 8
+  num_layers: 12
   board_vocab_size: 13     # 12 pieces + 1 empty square
   pos_size: 69             # 8x8 board + metadata
   turn_size: 2             # White/Black turn
@@ -65,7 +65,7 @@ training:
   checkpoint_dir: "checkpoints/"  # Directory to save model checkpoints
   save_frequency: 1  # How often to save model checkpoints (in epochs)
   visualize: true  # Whether to visualize training history
-  method: 'stockfish'  # Training method: 'mcts', 'self-play', or 'stockfish'
+  method: 'mcts'  # Training method: 'mcts', 'self-play', or 'stockfish'
 
 # Checkpoint configuration (for resuming training)
 checkpoint:

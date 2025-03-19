@@ -54,7 +54,7 @@ training:
   checkpoint_dir: checkpoints/
   save_frequency: 1
   visualize: true
-  method: stockfish
+  method: mcts
 checkpoint:
   path: C:\Users\haoyan\Documents\COGS188_group_template-1\checkpoints\latest_model.pt
 model_path: checkpoints/latest_model.pt

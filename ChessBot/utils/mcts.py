@@ -305,6 +305,81 @@ class MCTS:
         # Convert to [-1, 1] range
         return 2 * value - 1
 
+    def search(self, board, temperature=1.0, visit_weight=0.7, value_weight=0.3):
+            """
+            Run MCTS search from the given board state.
+            
+            Args:
+                board (chess.Board): Current board state
+                temperature (float): Temperature for controlling exploration in move selection
+                visit_weight (float): Weight given to visit counts in move selection (0-1)
+                value_weight (float): Weight given to node values in move selection (0-1)
+                
+            Returns:
+                chess.Move: Selected move
+                list: Distribution over moves
+            """
+            # Create root node
+            root = MCTSNode(board)
+            
+            # Expand root node
+            root.expand(self.model, self.device)
+            
+            # Add Dirichlet noise to root node
+            if self.dirichlet_noise and root.children:
+                noise = np.random.dirichlet([self.dirichlet_alpha] * len(root.children))
+                for i, child in enumerate(root.children):
+                    child.prior = (1 - self.noise_fraction) * child.prior + self.noise_fraction * noise[i]
+            
+            # Run simulations
+            for _ in range(self.simulations):
+                node = root
+                search_path = [node]
+                
+                # Selection phase - traverse tree until we find a leaf node
+                while not node.is_leaf() and not node.is_terminal():
+                    node = node.select_child(self.c_puct, self.repetition_penalty)
+                    search_path.append(node)
+                
+                # Expansion phase - expand the leaf node if it's not terminal
+                if not node.is_terminal():
+                    node.expand(self.model, self.device)
+                    
+                    # If the node has children after expansion, select one
+                    if node.children:
+                        child = node.select_child(self.c_puct, self.repetition_penalty)
+                        search_path.append(child)
+                        node = child
+                
+                # Simulation/Evaluation phase - use the model to evaluate the leaf
+                value = self.evaluate(node)
+                
+                # Backup phase - update statistics of all nodes in the search path
+                for node in reversed(search_path):
+                    # Negate the value because the perspective alternates at each level
+                    value = -value
+                    node.update(value)
+            
+            # Select move based on score-adjusted distribution
+            if not root.children:
+                # No legal moves
+                return None, None
+            
+            # Get distribution that balances visit counts and value estimates
+            probs = root.get_visit_count_distribution(temperature)
+            
+            if temperature == 0:
+                # Deterministic selection
+                best_idx = np.argmax(probs)
+                selected_node = root.children[best_idx]
+            else:
+                # Sample from distribution
+                selected_idx = np.random.choice(len(root.children), p=probs)
+                selected_node = root.children[selected_idx]
+            
+            # Return the selected move and the probability distribution
+            return selected_node.move, [(child.move, prob) for child, prob in zip(root.children, probs)]
+
 
 def create_batch_from_board(board, device):
     """
@@ -352,81 +427,6 @@ def create_batch_from_board(board, device):
     }
     
     return batch
-
-def search(self, board, temperature=1.0, visit_weight=0.7, value_weight=0.3):
-        """
-        Run MCTS search from the given board state.
-        
-        Args:
-            board (chess.Board): Current board state
-            temperature (float): Temperature for controlling exploration in move selection
-            visit_weight (float): Weight given to visit counts in move selection (0-1)
-            value_weight (float): Weight given to node values in move selection (0-1)
-            
-        Returns:
-            chess.Move: Selected move
-            list: Distribution over moves
-        """
-        # Create root node
-        root = MCTSNode(board)
-        
-        # Expand root node
-        root.expand(self.model, self.device)
-        
-        # Add Dirichlet noise to root node
-        if self.dirichlet_noise and root.children:
-            noise = np.random.dirichlet([self.dirichlet_alpha] * len(root.children))
-            for i, child in enumerate(root.children):
-                child.prior = (1 - self.noise_fraction) * child.prior + self.noise_fraction * noise[i]
-        
-        # Run simulations
-        for _ in range(self.simulations):
-            node = root
-            search_path = [node]
-            
-            # Selection phase - traverse tree until we find a leaf node
-            while not node.is_leaf() and not node.is_terminal():
-                node = node.select_child(self.c_puct, self.repetition_penalty)
-                search_path.append(node)
-            
-            # Expansion phase - expand the leaf node if it's not terminal
-            if not node.is_terminal():
-                node.expand(self.model, self.device)
-                
-                # If the node has children after expansion, select one
-                if node.children:
-                    child = node.select_child(self.c_puct, self.repetition_penalty)
-                    search_path.append(child)
-                    node = child
-            
-            # Simulation/Evaluation phase - use the model to evaluate the leaf
-            value = self.evaluate(node)
-            
-            # Backup phase - update statistics of all nodes in the search path
-            for node in reversed(search_path):
-                # Negate the value because the perspective alternates at each level
-                value = -value
-                node.update(value)
-        
-        # Select move based on score-adjusted distribution
-        if not root.children:
-            # No legal moves
-            return None, None
-        
-        # Get distribution that balances visit counts and value estimates
-        probs = root.get_score_adjusted_distribution(temperature, visit_weight, value_weight)
-        
-        if temperature == 0:
-            # Deterministic selection
-            best_idx = np.argmax(probs)
-            selected_node = root.children[best_idx]
-        else:
-            # Sample from distribution
-            selected_idx = np.random.choice(len(root.children), p=probs)
-            selected_node = root.children[selected_idx]
-        
-        # Return the selected move and the probability distribution
-        return selected_node.move, [(child.move, prob) for child, prob in zip(root.children, probs)]
 
 def get_best_move_mcts(board, model, device, temperature=1.0, simulations=800, 
                       repetition_penalty=0.5, visit_weight=0.7, value_weight=0.3):
@@ -672,7 +672,6 @@ def train_model_with_mcts(model, optimizer, num_games=100, epochs_per_game=1, ba
             print(f"Model saved to {checkpoint_path}")
     
     return history
-
 
 def train_model_with_mcts_regeneration(model, optimizer, num_epochs=50, batch_size=64, num_games_per_epoch=10, 
                                       device="cpu", simulations=800, temperature=1.0, c_puct=1.0,
@@ -926,7 +925,6 @@ def train_model_with_mcts_regeneration(model, optimizer, num_epochs=50, batch_si
             }, latest_path)
     
     return history
-
 
 def process_game_for_training(pgn_string, device="cpu"):
     """
